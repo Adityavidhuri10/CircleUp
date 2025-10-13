@@ -1,10 +1,10 @@
-// backend/server.js
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const http = require("http");
 const { Server } = require("socket.io");
 const connectDB = require("./config/db");
+const userRoutes = require("./routes/userRoutes");
 
 dotenv.config();          // Load environment variables
 connectDB();               // Connect MongoDB
@@ -12,6 +12,8 @@ connectDB();               // Connect MongoDB
 const app = express();
 app.use(express.json());
 app.use(cors());
+app.use("/api/user", userRoutes);
+
 
 // Simple test route
 app.get("/", (req, res) => {
