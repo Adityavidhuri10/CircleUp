@@ -8,6 +8,7 @@ const userRoutes = require("./routes/userRoutes");
 const friendRoutes = require("./routes/friendRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const Message = require("./models/Message");
+const communityRoutes = require("./routes/communityRoutes");
 
 
 
@@ -16,6 +17,7 @@ connectDB();               // Connect MongoDB
 
 const app = express();
 app.use(express.json());
+
 app.use(
   cors({
     origin: "http://localhost:5173",
@@ -26,6 +28,7 @@ app.use(
 app.use("/api/user", userRoutes);
 app.use("/api/friends", friendRoutes);
 app.use("/api/messages", messageRoutes);
+app.use("/api/communities", communityRoutes);
 
 
 // Simple test route
@@ -77,12 +80,43 @@ io.on("connection", (socket) => {
     }
   });
 
+// Join community room  
+    socket.on("joinCommunity", (communityId) => {
+    socket.join(communityId);
+    console.log(`User joined community room: ${communityId}`);
+  });
+  
+// Leave community room
+ socket.on("leaveCommunity", (communityId) => {
+    socket.leave(communityId);
+    console.log(`User left community room: ${communityId}`);
+  });
+
+
+// Send a message in a community
+  socket.on("sendCommunityMessage", async ({ communityId, sender, content }) => {
+    try {
+      const newMsg = await CommunityMessage.create({
+        community: communityId,
+        sender,
+        content,
+      });
+
+// Emit message to all members in that community room
+      io.to(communityId).emit("receiveCommunityMessage", newMsg);
+      console.log(`Message sent in community ${communityId}`);
+    } catch (err) {
+      console.error(" Error sending community message:", err.message);
+    }
+  });
+
+
 // Handle disconnection
   socket.on("disconnect", () => {
     for (let [userId, socketId] of onlineUsers.entries()) {
       if (socketId === socket.id) onlineUsers.delete(userId);
     }
-    console.log("🔴 Socket disconnected:", socket.id);
+    console.log(" Socket disconnected:", socket.id);
   });
 });
 const PORT = process.env.PORT || 5000;
