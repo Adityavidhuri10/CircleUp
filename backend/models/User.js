@@ -29,7 +29,10 @@ const userSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    resetToken: String,              // for password reset
+    resetTokenExpiry: Date           // token expiry
   },
+
   { timestamps: true }
 );
 

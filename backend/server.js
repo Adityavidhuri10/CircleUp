@@ -9,7 +9,7 @@ const friendRoutes = require("./routes/friendRoutes");
 const messageRoutes = require("./routes/messageRoutes");
 const Message = require("./models/Message");
 const communityRoutes = require("./routes/communityRoutes");
-
+const passwordRoutes = require("./routes/passwordRoutes");
 
 
 dotenv.config();          // Load environment variables
@@ -29,6 +29,7 @@ app.use("/api/user", userRoutes);
 app.use("/api/friends", friendRoutes);
 app.use("/api/messages", messageRoutes);
 app.use("/api/communities", communityRoutes);
+app.use("/api/auth", passwordRoutes);
 
 
 // Simple test route
