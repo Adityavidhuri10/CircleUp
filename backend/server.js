@@ -3,27 +3,52 @@ const cors = require("cors");
 const dotenv = require("dotenv");
 const http = require("http");
 const { Server } = require("socket.io");
+const helmet = require("helmet");
+const compression = require("compression");
+
 const connectDB = require("./config/db");
+
+// Route Imports
 const userRoutes = require("./routes/userRoutes");
 const friendRoutes = require("./routes/friendRoutes");
 const messageRoutes = require("./routes/messageRoutes");
-const Message = require("./models/Message");
 const communityRoutes = require("./routes/communityRoutes");
 const passwordRoutes = require("./routes/passwordRoutes");
 
+// Model Imports
+const Message = require("./models/Message");
+const CommunityMessage = require("./models/CommunityMessage");
 
-dotenv.config();          // Load environment variables
-connectDB();               // Connect MongoDB
+// Middleware
+const errorHandler = require("./middleware/errorMiddleware");
 
+
+//  Config & Initialization
+
+dotenv.config();
 const app = express();
-app.use(express.json());
+connectDB();
 
+const ENV = process.env.NODE_ENV || "development";
+const PORT = process.env.PORT || 5000;
+
+console.log(`Environment: ${ENV}`);
+
+
+//  Middlewares
+app.use(express.json());
+app.use(helmet()); // adds security headers
+app.use(compression()); // compresses responses
 app.use(
   cors({
-    origin: "http://localhost:5173",
-    methods: ["GET", "POST"],
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    methods: ["GET", "POST", "PUT", "DELETE"],
+    credentials: true,
   })
 );
+
+
+//  API Routes
 
 app.use("/api/user", userRoutes);
 app.use("/api/friends", friendRoutes);
@@ -31,70 +56,59 @@ app.use("/api/messages", messageRoutes);
 app.use("/api/communities", communityRoutes);
 app.use("/api/auth", passwordRoutes);
 
-
-// Simple test route
+//Check Route
 app.get("/", (req, res) => {
-  res.send("Backend server is running ");
+  res.send(" CircleUP Backend server is running...");
 });
 
-// Create HTTP + Socket.IO server
+
+//  Socket.IO Setup
 const server = http.createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "http://localhost:5173",
+    origin: process.env.FRONTEND_URL || "http://localhost:5173",
     methods: ["GET", "POST"],
   },
 });
 
-//Store connected users: userId → socketId
 const onlineUsers = new Map();
 
-// Socket.IO events
 io.on("connection", (socket) => {
-  console.log(" Socket connected:", socket.id);
+  console.log("Socket connected:", socket.id);
 
-// Register a user when they log in
+  // Register User
   socket.on("registerUser", (userId) => {
     onlineUsers.set(userId, socket.id);
-    console.log(`User ${userId} connected with socket ${socket.id}`);
+    console.log(` User ${userId} registered with socket ${socket.id}`);
   });
 
-
-// Listen for private messages
+  // Private Message
   socket.on("sendPrivateMessage", async ({ sender, receiver, content }) => {
     try {
-      // Save message in MongoDB
       const newMessage = await Message.create({ sender, receiver, content });
 
-      // Find receiver's socket ID
       const receiverSocketId = onlineUsers.get(receiver);
-
-      // If receiver is online, send the message instantly
       if (receiverSocketId) {
         io.to(receiverSocketId).emit("receivePrivateMessage", newMessage);
       }
 
-      // (Optional) echo to sender as confirmation
       socket.emit("messageSent", newMessage);
     } catch (err) {
-      console.error("Error sending message:", err.message);
+      console.error(" Error sending private message:", err.message);
     }
   });
 
-// Join community room  
-    socket.on("joinCommunity", (communityId) => {
+  // Community Rooms
+  socket.on("joinCommunity", (communityId) => {
     socket.join(communityId);
-    console.log(`User joined community room: ${communityId}`);
+    console.log(` Joined community room: ${communityId}`);
   });
-  
-// Leave community room
- socket.on("leaveCommunity", (communityId) => {
+
+  socket.on("leaveCommunity", (communityId) => {
     socket.leave(communityId);
-    console.log(`User left community room: ${communityId}`);
+    console.log(` Left community room: ${communityId}`);
   });
 
-
-// Send a message in a community
   socket.on("sendCommunityMessage", async ({ communityId, sender, content }) => {
     try {
       const newMsg = await CommunityMessage.create({
@@ -103,16 +117,14 @@ io.on("connection", (socket) => {
         content,
       });
 
-// Emit message to all members in that community room
       io.to(communityId).emit("receiveCommunityMessage", newMsg);
-      console.log(`Message sent in community ${communityId}`);
+      console.log(` Message sent in community ${communityId}`);
     } catch (err) {
       console.error(" Error sending community message:", err.message);
     }
   });
 
-
-// Handle disconnection
+  // Disconnect
   socket.on("disconnect", () => {
     for (let [userId, socketId] of onlineUsers.entries()) {
       if (socketId === socket.id) onlineUsers.delete(userId);
@@ -120,5 +132,22 @@ io.on("connection", (socket) => {
     console.log(" Socket disconnected:", socket.id);
   });
 });
-const PORT = process.env.PORT || 5000;
-server.listen(PORT, () => console.log(` Server running on port ${PORT}`));
+
+
+//  Error Handling
+
+// Not found handler
+app.use((req, res, next) => {
+  res.status(404);
+  const error = new Error(`Route not found - ${req.originalUrl}`);
+  next(error);
+});
+
+// Global error middleware
+app.use(errorHandler);
+
+//  Start Server
+
+server.listen(PORT, () =>
+  console.log(` Server running on port ${PORT}`)
+);
