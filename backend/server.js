@@ -41,11 +41,12 @@ app.use(helmet()); // adds security headers
 app.use(compression()); // compresses responses
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:5173",
+    origin: "http://localhost:5173",
     methods: ["GET", "POST", "PUT", "DELETE"],
     credentials: true,
   })
 );
+
 
 
 //  API Routes

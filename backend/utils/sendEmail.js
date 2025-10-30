@@ -6,12 +6,12 @@ const sendEmail = async (to, subject, htmlContent) => {
     const transporter = nodemailer.createTransport({
       service: "gmail",
       auth: {
-        user: process.env.EMAIL_USER, // your gmail
-        pass: process.env.EMAIL_PASS, // your app password
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS, 
       },
     });
 
-    // Email options
+    //  Define email options
     const mailOptions = {
       from: `"CircleUP" <${process.env.EMAIL_USER}>`,
       to,
@@ -19,12 +19,14 @@ const sendEmail = async (to, subject, htmlContent) => {
       html: htmlContent,
     };
 
-    // Send email
+    //  Send email
     await transporter.sendMail(mailOptions);
-    console.log("✅ Email sent to:", to);
+    console.log(" Email sent successfully to:", to);
   } catch (error) {
-    console.error("❌ Error sending email:", error.message);
+    console.error(" Error sending email:", error.message);
+    throw new Error("Failed to send email. Please try again later.");
   }
 };
 
 module.exports = sendEmail;
+
