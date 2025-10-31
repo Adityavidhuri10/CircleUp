@@ -17,6 +17,12 @@ const Navbar = () => {
       <Link to="/" className="text-xl font-bold tracking-wide">
         CircleUP
       </Link>
+      <div className="flex items-center gap-6 text-sm">
+  <Link to="/" className="hover:underline">Home</Link>
+  <Link to="/people" className="hover:underline">People</Link>
+  <Link to="/profile" className="hover:underline">Profile</Link>
+</div>
+
 
       <div className="flex items-center gap-4">
         {user ? (

@@ -1,8 +1,9 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 import { motion } from "framer-motion";
 import { FaUser, FaLock, FaArrowRight } from "react-icons/fa";
 import { Link, useNavigate } from "react-router-dom";
 import axios from "axios";
+import { AuthContext } from "../context/AuthContext"; // ✅ added
 
 const Login = () => {
   const [formData, setFormData] = useState({
@@ -13,12 +14,16 @@ const Login = () => {
   const [error, setError] = useState(null);
   const navigate = useNavigate();
 
+  // ✅ Access global auth context
+  const { setUser } = useContext(AuthContext);
+
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prev) => ({
       ...prev,
       [name]: value,
     }));
+    setError(null); // clears old error when typing
   };
 
   const handleSubmit = async (e) => {
@@ -32,11 +37,16 @@ const Login = () => {
         formData
       );
 
-      if (response.data.success) {
-        
-        localStorage.setItem('token', response.data.token);
-        localStorage.setItem("user" , JSON.stringify(response?.data?.user))
-        navigate("/"); // Navigate to home page on success
+      if (response.data.success && response.data.user && response.data.token) {
+        // ✅ Save credentials locally
+        localStorage.setItem("token", response.data.token);
+        localStorage.setItem("user", JSON.stringify(response.data.user));
+
+        // ✅ Update global context immediately
+        setUser(response.data.user);
+
+        // ✅ Navigate to home after React updates context
+        setTimeout(() => navigate("/"), 150);
       } else {
         setError(response.data.message || "Login failed");
       }
