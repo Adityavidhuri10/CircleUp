@@ -1,6 +1,8 @@
 const User = require("../models/User");
 const bcrypt = require("bcryptjs");
 const jwt = require("jsonwebtoken");
+
+
 // Register new user(with hashing + token)
 const registerUser = async (req, res) => {
   try {
@@ -84,4 +86,97 @@ const getAllUsers = async (req, res) => {
   }
 };
 
-module.exports = { registerUser, loginUser,getAllUsers };
+// Fetch a single user
+const getSingleUser = async (req, res) => {
+  try {
+    const { id } = req.body;
+    const user = await User.findById(id).select("-password");
+    if (!user) return res.status(404).json({ message: "User not found" });
+    res.json(user);
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
+// Add a goal
+const addGoal = async (req, res) => {
+  try {
+    const { userId, goal } = req.body;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.goals.push(goal);
+    await user.save();
+    res.json({ success: true, goals: user.goals });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to add goal" });
+  }
+};
+
+// Delete a goal
+const deleteGoal = async (req, res) => {
+  try {
+    const { userId, goal } = req.body;
+    const user = await User.findById(userId);
+    if (!user) return res.status(404).json({ message: "User not found" });
+
+    user.goals = user.goals.filter((g) => g !== goal);
+    await user.save();
+    res.json({ success: true, goals: user.goals });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to delete goal" });
+  }
+};
+
+// Update profile picture
+const updateProfilePicture = async (req, res) => {
+  try {
+    const { userId, profilePicture } = req.body;
+    await User.findByIdAndUpdate(userId, { picture: profilePicture });
+    res.json({ success: true, message: "Profile picture updated" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to update picture" });
+  }
+};
+
+// Change location
+const changeLocation = async (req, res) => {
+  try {
+    const { id, location } = req.body;
+    await User.findByIdAndUpdate(id, { location });
+    res.json({ success: true, message: "Location updated" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to update location" });
+  }
+};
+
+// Delete account
+const deleteAccount = async (req, res) => {
+  try {
+    const { userId } = req.body;
+    await User.findByIdAndDelete(userId);
+    res.json({ success: true, message: "Account deleted successfully" });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: "Failed to delete account" });
+  }
+};
+
+
+module.exports = {
+  registerUser,
+  loginUser,
+  getAllUsers,
+  getSingleUser,
+  addGoal,
+  deleteGoal,
+  updateProfilePicture,
+  changeLocation,
+  deleteAccount,
+};
+

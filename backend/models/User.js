@@ -29,6 +29,8 @@ const userSchema = new mongoose.Schema(
         ref: "User",
       },
     ],
+    goals: [String],
+    location: { type: String, default: "" },
     resetToken: String,              // for password reset
     resetTokenExpiry: Date           // token expiry
   },
