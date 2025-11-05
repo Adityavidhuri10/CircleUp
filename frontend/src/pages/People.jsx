@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useContext } from "react";
 import api from "../api/axios";
-import Navbar from "../components/Navbar";
 import UserCard from "../components/UserCard";
 import { AuthContext } from "../context/AuthContext";
+import Header from "../components/Header";
 
 const People = () => {
   const { user } = useContext(AuthContext);
@@ -28,7 +28,7 @@ const People = () => {
 
   return (
     <>
-      <Navbar />
+      <Header />
       <div className="max-w-5xl mx-auto mt-10 p-4">
         <h1 className="text-3xl font-bold text-blue-700 mb-6">
           👥 Connect with People

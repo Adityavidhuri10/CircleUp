@@ -5,12 +5,16 @@ import SignUp from "./pages/SignUp";
 import Home from "./pages/Home";
 import People from "./pages/People";
 import Profile from "./pages/Profile";
+import Chat from "./pages/Chat";
+import AdminCommunityPage from "./pages/AdminCommunityPage";
+import Community from "./pages/CommunityPage";
 import ProtectedRoute from "./components/ProtectedRoute";
 
 function App() {
   return (
     <Router>
       <Routes>
+        {/* Protected Routes */}
         <Route
           path="/"
           element={
@@ -35,8 +39,37 @@ function App() {
             </ProtectedRoute>
           }
         />
+        <Route
+          path="/chat"
+          element={
+            <ProtectedRoute>
+              <Chat />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/create-community"
+          element={
+            <ProtectedRoute>
+              <AdminCommunityPage />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/community"
+          element={
+            <ProtectedRoute>
+              <Community />
+            </ProtectedRoute>
+          }
+        />
+
+        {/* Public Routes */}
         <Route path="/login" element={<Login />} />
         <Route path="/signup" element={<SignUp />} />
+
+        {/* Optional 404 Page (if route not found) */}
+        {/* <Route path="*" element={<NotFound />} /> */}
       </Routes>
     </Router>
   );

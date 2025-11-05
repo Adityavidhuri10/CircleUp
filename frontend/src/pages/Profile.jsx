@@ -1,7 +1,7 @@
 import React, { useContext, useState } from "react";
-import Navbar from "../components/Navbar";
 import { AuthContext } from "../context/AuthContext";
 import api from "../api/axios";
+import Header from "../components/Header";
 
 const Profile = () => {
   const { user, setUser } = useContext(AuthContext);
@@ -40,7 +40,7 @@ const Profile = () => {
 
   return (
     <>
-      <Navbar />
+      <Header />
       <div className="max-w-lg mx-auto mt-10 bg-white shadow-md p-6 rounded-xl">
         <h1 className="text-3xl font-bold text-blue-700 mb-6 text-center">
           👤 My Profile
