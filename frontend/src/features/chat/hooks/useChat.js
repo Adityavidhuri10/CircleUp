@@ -36,6 +36,12 @@ export const useChat = () => {
         initUser();
     }, []);
 
+    // Bug 7 Fix: Use ref for selectedFriend to avoid stale closure in socket listeners
+    const selectedFriendRef = useRef(null);
+    useEffect(() => {
+        selectedFriendRef.current = selectedFriend;
+    }, [selectedFriend]);
+
     // Socket events
     useEffect(() => {
         if (!currentUser) return;
@@ -44,13 +50,18 @@ export const useChat = () => {
 
         socket.on('online-users', setOnlineUsers);
         socket.on('receive-message', (msg) => {
-            setMessages((prev) => [...prev, msg]);
+            // Bug 7 Fix: Only add message if it's from the currently selected friend.
+            // Without this, messages from Friend C would appear in Friend B's chat.
+            const currentFriend = selectedFriendRef.current;
+            if (currentFriend && msg.sender === currentFriend._id) {
+                setMessages((prev) => [...prev, msg]);
+            }
         });
         socket.on('typing', ({ from }) => {
-            if (selectedFriend && from === selectedFriend._id) setIsTyping(true);
+            if (selectedFriendRef.current && from === selectedFriendRef.current._id) setIsTyping(true);
         });
         socket.on('stop-typing', ({ from }) => {
-            if (selectedFriend && from === selectedFriend._id) setIsTyping(false);
+            if (selectedFriendRef.current && from === selectedFriendRef.current._id) setIsTyping(false);
         });
 
         return () => {
@@ -59,7 +70,7 @@ export const useChat = () => {
             socket.off('typing');
             socket.off('stop-typing');
         };
-    }, [currentUser, selectedFriend]);
+    }, [currentUser]);
 
     // Auto-scroll
     useEffect(() => {

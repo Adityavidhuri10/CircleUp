@@ -14,11 +14,33 @@ import { Link, useNavigate } from "react-router-dom";
 import { GrGroup } from "react-icons/gr";
 import { AiFillWechat } from "react-icons/ai";
 import useNotifications from "../features/notifications/hooks/useNotifications";
+import { disconnectSocket } from "../api/socket";
+
+/**
+ * Bug 6 Fix: useNotifications calls getSocket() and makes API requests.
+ * React hooks can't be called conditionally, so we extract the notification
+ * badge into a separate component that's only rendered when logged in.
+ */
+const NotificationBadge = () => {
+  const { unreadCount } = useNotifications();
+  return (
+    <Link
+      to="/notifications"
+      className="text-white hover:text-indigo-200 transition duration-300 flex items-center space-x-1 relative"
+    >
+      <FaBell className="text-lg" />
+      {unreadCount > 0 && (
+        <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
+          {unreadCount > 9 ? '9+' : unreadCount}
+        </span>
+      )}
+    </Link>
+  );
+};
 
 const Header = () => {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
   const isLoggedIn = localStorage.getItem("user") !== null;
-  const { unreadCount } = useNotifications();
 
   return (
     <header className="bg-gradient-to-r from-purple-600 to-indigo-600 shadow-lg sticky top-0 z-50">
@@ -85,19 +107,12 @@ const Header = () => {
                   <FaUserCircle className="text-lg" />
                   <span>Profile</span>
                 </Link>
-                <Link
-                  to="/notifications"
-                  className="text-white hover:text-indigo-200 transition duration-300 flex items-center space-x-1 relative"
-                >
-                  <FaBell className="text-lg" />
-                  {unreadCount > 0 && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-[10px] w-4 h-4 flex items-center justify-center rounded-full">
-                      {unreadCount > 9 ? '9+' : unreadCount}
-                    </span>
-                  )}
-                </Link>
+                {/* Bug 6 Fix: Only render notification hook when logged in */}
+                <NotificationBadge />
                 <button
                   onClick={() => {
+                    // Bug 11 Fix: Disconnect socket before clearing auth data
+                    disconnectSocket();
                     localStorage.removeItem("user");
                     localStorage.removeItem("token");
                     navigate("/");

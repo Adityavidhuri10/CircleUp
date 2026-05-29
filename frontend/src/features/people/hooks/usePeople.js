@@ -58,7 +58,7 @@ export const usePeople = () => {
         }
     };
 
-    const handleSendRequest = async (controls, receiverId, rejectedUsers, setRejectedUsers, showAiMatches, rejectedAiMatches, setRejectedAiMatches, goToNext) => {
+    const handleSendRequest = async (controls, receiverId, rejectedUsers, setRejectedUsers, showAiMatches, rejectedAiMatches, setRejectedAiMatches) => {
         try {
             await peopleService.sendFriendRequest(receiverId);
             toast.success('Friend request sent!');
@@ -69,7 +69,12 @@ export const usePeople = () => {
                 setRejectedUsers([...rejectedUsers, receiverId]);
             }
             await controls.start({ x: '100%', opacity: 0, transition: { duration: 0.5 } });
-            goToNext();
+            // Do NOT call goToNext() — the user is added to sentRequests/rejected
+            // which shrinks availablePeople. The next person naturally appears
+            // at the same index position. Calling goToNext caused double-skip.
+            setTimeout(() => {
+                controls.start({ x: 0, opacity: 1 });
+            }, 300);
         } catch (error) {
             toast.error(error.response?.data?.message || 'Failed to send request');
         }

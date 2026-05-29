@@ -13,6 +13,9 @@ export const useCommunityChat = () => {
     const [loading, setLoading] = useState(true);
     const messagesEndRef = useRef(null);
     const typingTimeoutRef = useRef(null);
+    // Bug 4/8 Fix: Use a ref to track the current community for socket cleanup
+    // This avoids stale closure issues in useCallback and useEffect
+    const selectedCommunityRef = useRef(null);
 
     useEffect(() => {
         const stored = localStorage.getItem('user');
@@ -24,31 +27,51 @@ export const useCommunityChat = () => {
         messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }, [messages]);
 
+    // Bug 4 Fix: Keep ref in sync with state
+    useEffect(() => {
+        selectedCommunityRef.current = selectedCommunity;
+    }, [selectedCommunity]);
+
     useEffect(() => {
         const socket = getSocket();
-        socket.on('community-message', (msg) => {
-            if (selectedCommunity && msg.community === selectedCommunity._id) {
+
+        const handleCommunityMessage = (msg) => {
+            const current = selectedCommunityRef.current;
+            // Bug 3 Fix: Use String() for safe comparison — msg.community may be
+            // a Mongoose ObjectId (serialized) while selectedCommunity._id is a string
+            if (current && String(msg.community) === String(current._id)) {
                 setMessages((prev) => [...prev, msg]);
             }
-        });
-        socket.on('community-typing', ({ from, communityId }) => {
-            if (selectedCommunity && communityId === selectedCommunity._id) {
+        };
+
+        const handleCommunityTyping = ({ from, communityId }) => {
+            const current = selectedCommunityRef.current;
+            if (current && String(communityId) === String(current._id)) {
                 setTypingUser(from);
                 setIsTyping(true);
             }
-        });
-        socket.on('community-stop-typing', ({ communityId }) => {
-            if (selectedCommunity && communityId === selectedCommunity._id) {
+        };
+
+        const handleCommunityStopTyping = ({ communityId }) => {
+            const current = selectedCommunityRef.current;
+            if (current && String(communityId) === String(current._id)) {
                 setIsTyping(false);
                 setTypingUser(null);
             }
-        });
-        return () => {
-            socket.off('community-message');
-            socket.off('community-typing');
-            socket.off('community-stop-typing');
         };
-    }, [selectedCommunity]);
+
+        socket.on('community-message', handleCommunityMessage);
+        socket.on('community-typing', handleCommunityTyping);
+        socket.on('community-stop-typing', handleCommunityStopTyping);
+
+        return () => {
+            socket.off('community-message', handleCommunityMessage);
+            socket.off('community-typing', handleCommunityTyping);
+            socket.off('community-stop-typing', handleCommunityStopTyping);
+        };
+    // Bug 4 Fix: Empty dependency array — listeners use refs, not stale state
+    // This prevents listener re-registration on every community selection
+    }, []);
 
     const loadCommunities = async () => {
         try {
@@ -62,42 +85,46 @@ export const useCommunityChat = () => {
     };
 
     const selectCommunity = useCallback(async (community) => {
+        const socket = getSocket();
+        // Bug 8 Fix: Use ref (not stale closure) for the previous community
+        const prev = selectedCommunityRef.current;
+        if (prev) socket.emit('leave-community', prev._id);
+
         setSelectedCommunity(community);
         setMessages([]);
-        const socket = getSocket();
-        if (selectedCommunity) socket.emit('leave-community', selectedCommunity._id);
         socket.emit('join-community', community._id);
+
         try {
             const { data } = await communityService.getMessages(community._id);
-            // Updated to handle paginated response { messages, page, totalPages, totalMessages }
+            // Handle paginated response { messages, page, totalPages, totalMessages }
             setMessages(data.data.messages || []);
         } catch (error) {
             console.error('Failed to load messages:', error);
         }
-    }, [selectedCommunity]);
+    }, []); // No dependencies needed — uses ref for previous community
 
     const sendMessage = useCallback(() => {
-        if (!newMessage.trim() || !selectedCommunity || !currentUser) return;
+        if (!newMessage.trim() || !selectedCommunityRef.current || !currentUser) return;
         const socket = getSocket();
         socket.emit('community-message', {
-            communityId: selectedCommunity._id,
+            communityId: selectedCommunityRef.current._id,
             sender: currentUser._id,
             message: newMessage,
             anonymousName: currentUser.anonymousName,
         });
-        socket.emit('community-stop-typing', { communityId: selectedCommunity._id, sender: currentUser._id });
+        socket.emit('community-stop-typing', { communityId: selectedCommunityRef.current._id, sender: currentUser._id });
         setNewMessage('');
-    }, [newMessage, selectedCommunity, currentUser]);
+    }, [newMessage, currentUser]);
 
     const handleTyping = useCallback(() => {
-        if (!currentUser || !selectedCommunity) return;
+        if (!currentUser || !selectedCommunityRef.current) return;
         const socket = getSocket();
-        socket.emit('community-typing', { communityId: selectedCommunity._id, from: currentUser.anonymousName });
+        socket.emit('community-typing', { communityId: selectedCommunityRef.current._id, from: currentUser.anonymousName });
         if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
         typingTimeoutRef.current = setTimeout(() => {
-            socket.emit('community-stop-typing', { communityId: selectedCommunity._id });
+            socket.emit('community-stop-typing', { communityId: selectedCommunityRef.current?._id });
         }, 2000);
-    }, [currentUser, selectedCommunity]);
+    }, [currentUser]);
 
     const leaveCommunity = useCallback(async (communityId) => {
         try {
@@ -112,7 +139,7 @@ export const useCommunityChat = () => {
             console.error('Failed to leave community:', error);
             return { success: false, error: error.response?.data?.message || 'Failed to leave community' };
         }
-    }, [selectedCommunity]);
+    }, []);
 
     return {
         communities, selectedCommunity, messages,

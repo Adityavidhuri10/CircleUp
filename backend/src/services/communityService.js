@@ -30,11 +30,11 @@ const addUsersToCommunity = async (communityId, adminId, userIds) => {
         community.members.push(...newMembers);
         await community.save();
 
-        // Notify each added user
+        // Bug 12 Fix: Notify only newly added users, not all requested userIds
         const { createNotification } = require('./notificationService');
-        for (const userId of userIds) {
+        for (const member of newMembers) {
             await createNotification({
-                recipient: userId,
+                recipient: member.user,
                 sender: adminId,
                 type: 'COMMUNITY_INVITE',
                 referenceId: communityId,

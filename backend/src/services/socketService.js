@@ -100,6 +100,17 @@ const initSocket = (server) => {
                 return socket.emit('message-error', { error: 'Unauthorized: sender mismatch' });
             }
             try {
+                // Bug 5 Fix: Validate community membership before saving
+                const Community = require('../models/Community');
+                const community = await Community.findById(communityId);
+                if (!community) {
+                    return socket.emit('message-error', { error: 'Community not found' });
+                }
+                if (!community.isMember(sender)) {
+                    logger.warn(`Non-member ${sender} tried to send message in community ${communityId}`);
+                    return socket.emit('message-error', { error: 'You must be a member to send messages' });
+                }
+
                 const populatedMessage = await chatService.saveCommunityMessage(
                     communityId,
                     sender,

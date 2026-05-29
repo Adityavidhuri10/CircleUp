@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { motion, AnimatePresence } from "framer-motion";
 import { Toaster } from "react-hot-toast";
 import { FaRobot, FaUsers, FaHourglass } from "react-icons/fa";
@@ -23,7 +23,7 @@ const PeoplesPage = () => {
         controls, currentIndex, setCurrentIndex,
         rejectedUsers, setRejectedUsers,
         rejectedAiMatches, setRejectedAiMatches,
-        goToNext, handleSwipe, rejectUser,
+        handleSwipe, rejectUser, clampIndex,
     } = useSwipe();
 
     const { aiMatchingResults, aiLoading, showAiMatches, handleAiMatching, exitAiMatches } = useAiMatching(filteredPeople, allPeople);
@@ -36,6 +36,12 @@ const PeoplesPage = () => {
     const availablePeople = showAiMatches
         ? (aiMatchingResults?.similarUsers?.filter((u) => !rejectedAiMatches.includes(u._id)) ?? [])
         : filteredPeople.filter((p) => !rejectedUsers.includes(p._id));
+
+    // Clamp currentIndex whenever the available list shrinks (e.g. after reject/send)
+    // This prevents out-of-bounds access when the last person in the list is removed.
+    useEffect(() => {
+        clampIndex(availablePeople.length);
+    }, [availablePeople.length]);
 
     const currentPerson = availablePeople[currentIndex];
 
@@ -61,12 +67,12 @@ const PeoplesPage = () => {
     const onSwipe = (info, personId) => handleSwipe(
         info, personId,
         sentRequests.includes(personId),
-        (id) => handleSendRequest(controls, id, rejectedUsers, setRejectedUsers, showAiMatches, rejectedAiMatches, setRejectedAiMatches, () => goToNext(availablePeople.length)),
+        (id) => handleSendRequest(controls, id, rejectedUsers, setRejectedUsers, showAiMatches, rejectedAiMatches, setRejectedAiMatches),
         (id) => rejectUser(id, showAiMatches, availablePeople.length),
         availablePeople.length,
     );
 
-    const onSendRequest = (id) => handleSendRequest(controls, id, rejectedUsers, setRejectedUsers, showAiMatches, rejectedAiMatches, setRejectedAiMatches, () => goToNext(availablePeople.length));
+    const onSendRequest = (id) => handleSendRequest(controls, id, rejectedUsers, setRejectedUsers, showAiMatches, rejectedAiMatches, setRejectedAiMatches);
     const onReject = (id) => rejectUser(id, showAiMatches, availablePeople.length);
 
     if (loading) return <div className="min-h-screen flex items-center justify-center text-purple-700 text-xl">Loading...</div>;
