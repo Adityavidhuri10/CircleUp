@@ -4,11 +4,11 @@ import { getAvatarColor } from "./PeopleCard";
 
 const PendingRequests = ({ requests, onAccept, onReject, onBack }) => (
     <div className="w-full max-w-md">
-        <div className="flex justify-between items-center mb-4">
+        <div className="flex flex-col gap-2 sm:flex-row sm:justify-between sm:items-center mb-4">
             <h2 className="text-2xl font-bold text-purple-800">
                 Pending Requests ({requests.length})
             </h2>
-            <button onClick={onBack} className="text-purple-600 hover:text-purple-800">
+            <button onClick={onBack} className="text-purple-600 hover:text-purple-800 text-sm font-medium text-left cursor-pointer">
                 Back to Discover
             </button>
         </div>

@@ -58,7 +58,7 @@ const ExploreCommunitiesPage = () => {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <div className="min-h-screen bg-gray-50 p-4 sm:p-6">
             <div className="max-w-6xl mx-auto">
                 <div className="flex flex-col md:flex-row md:items-center justify-between mb-8 gap-4">
                     <div>
@@ -75,12 +75,12 @@ const ExploreCommunitiesPage = () => {
                             placeholder="Search communities..."
                             value={search}
                             onChange={handleSearch}
-                            className="w-full pl-10 pr-4 py-3 rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
+                            className="w-full pl-10 pr-24 py-3 rounded-2xl border border-gray-200 focus:outline-none focus:ring-2 focus:ring-purple-500 shadow-sm"
                         />
                         <FaSearch className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400" />
                         <button
                             type="submit"
-                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-purple-600 text-white px-3 py-1.5 rounded-xl hover:bg-purple-700 transition-colors"
+                            className="absolute right-2 top-1/2 -translate-y-1/2 bg-purple-600 text-white px-3 py-1.5 rounded-xl hover:bg-purple-700 transition-colors cursor-pointer"
                         >
                             Search
                         </button>

@@ -36,12 +36,17 @@ const PeopleCard = ({
         >
             {/* Photo area */}
             <div className={`h-3/4 relative flex items-center justify-center ${getAvatarColor(person.name || person.anonymousName)}`}>
+                {person.primaryGoal && (
+                    <div className="absolute top-4 left-4 bg-purple-600 text-white px-3 py-1 rounded-full text-xs font-semibold shadow-md z-30">
+                        {person.primaryGoal}
+                    </div>
+                )}
                 {person.picture ? (
                     <>
                         <img src={person.picture} alt={person.anonymousName} className="w-full h-full object-cover" />
                         <button
                             onClick={() => onOpenPhoto(person.picture)}
-                            className="absolute bottom-4 right-4 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all z-50"
+                            className="absolute bottom-4 right-4 bg-black bg-opacity-50 text-white p-2 rounded-full hover:bg-opacity-70 transition-all z-40"
                             title="View profile photo"
                         >
                             <FaCamera size={20} />
@@ -55,32 +60,26 @@ const PeopleCard = ({
             </div>
 
             {/* Info panel */}
-            <div className="absolute bottom-24 left-4 right-4 p-4 bg-white bg-opacity-90 rounded-xl shadow-sm">
+            <div className="absolute bottom-24 left-4 right-4 p-4 bg-white bg-opacity-95 rounded-xl shadow-sm max-h-[210px] overflow-y-auto">
                 <div className="flex justify-between items-center mb-2">
-                    <h2 className="text-2xl font-bold text-gray-800">{person.anonymousName}</h2>
+                    <h2 className="text-xl font-bold text-gray-800">{person.anonymousName}</h2>
                     {matchData && (
-                        <span className="bg-green-100 text-green-800 text-xs font-medium px-2.5 py-0.5 rounded">
+                        <span className="bg-green-100 text-green-800 text-[10px] font-medium px-2 py-0.5 rounded">
                             {(matchData.similarity_score * 100).toFixed(0)}% match
                         </span>
                     )}
                 </div>
-                <p className="text-sm text-gray-600 mb-2"><span className="font-medium">Location:</span> {person.location}</p>
-                {/* Primary Goal Badge */}
-                {person.primaryGoal && (
-                    <div className="absolute top-4 right-4 bg-purple-600 text-white px-3 py-1 rounded-full text-sm font-semibold shadow-md">
-                        {person.primaryGoal}
-                    </div>
-                )}
+                <p className="text-xs text-gray-600 mb-2"><span className="font-medium">Location:</span> {person.location}</p>
 
                 {/* Secondary Goals / Interests */}
                 {person.secondaryGoals?.length > 0 && (
-                    <div className="mt-3">
-                        <div className="flex items-center text-purple-600 mb-1">
-                            <FaBullseye className="mr-2" /><span className="font-semibold">Interests</span>
+                    <div className="mt-2.5">
+                        <div className="flex items-center text-purple-600 text-xs mb-1">
+                            <FaBullseye className="mr-1.5" /><span className="font-semibold">Interests</span>
                         </div>
-                        <div className="flex flex-wrap gap-2">
+                        <div className="flex flex-wrap gap-1.5">
                             {person.secondaryGoals.map((goal, i) => (
-                                <span key={i} className="text-xs bg-purple-50 text-purple-700 px-2 py-1 rounded border border-purple-100">
+                                <span key={i} className="text-[10px] bg-purple-50 text-purple-700 px-2 py-0.5 rounded border border-purple-100">
                                     {goal}
                                 </span>
                             ))}
@@ -88,11 +87,11 @@ const PeopleCard = ({
                     </div>
                 )}
                 {matchData && (
-                    <div className="bg-purple-50 p-3 rounded mt-2">
-                        <div className="flex items-center text-purple-700 mb-1">
-                            <FaRobot className="mr-2" /><span className="font-semibold">Why we matched you</span>
+                    <div className="bg-purple-50 p-2.5 rounded mt-2.5">
+                        <div className="flex items-center text-purple-700 text-xs mb-1">
+                            <FaRobot className="mr-1.5" /><span className="font-semibold">Why we matched you</span>
                         </div>
-                        <ul className="list-disc list-inside text-gray-700 text-sm">
+                        <ul className="list-disc list-inside text-gray-700 text-[11px] space-y-0.5">
                             {matchData.similarity_reasons?.slice(0, 2).map((reason, i) => <li key={i}>{reason}</li>)}
                         </ul>
                     </div>

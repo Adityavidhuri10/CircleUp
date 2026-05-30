@@ -25,19 +25,22 @@ const ChatPage = () => {
     return (
         <div className="h-screen flex flex-col bg-gray-50">
             <ToastContainer />
-            <div className="flex flex-1 overflow-hidden">
-                <FriendsList
-                    friends={friends}
-                    currentUser={currentUser}
-                    onlineUsers={onlineUsers}
-                    selectedFriend={selectedFriend}
-                    onSelect={selectFriend}
-                    onToggleName={toggleNameVisibility}
-                    onRemove={removeFriend}
-                />
+            <div className="flex flex-1 overflow-hidden relative">
+                {/* Friends List - full-width on mobile if no friend selected, hidden if a friend is selected */}
+                <div className={`h-full border-r border-gray-200 flex-shrink-0 ${selectedFriend ? "hidden md:flex md:w-72" : "flex w-full md:w-72"}`}>
+                    <FriendsList
+                        friends={friends}
+                        currentUser={currentUser}
+                        onlineUsers={onlineUsers}
+                        selectedFriend={selectedFriend}
+                        onSelect={selectFriend}
+                        onToggleName={toggleNameVisibility}
+                        onRemove={removeFriend}
+                    />
+                </div>
 
-                {/* Chat area */}
-                <div className="flex-1 flex flex-col">
+                {/* Chat area - hidden on mobile if no friend selected, full-width if a friend is selected */}
+                <div className={`flex-1 flex flex-col ${!selectedFriend ? "hidden md:flex" : "flex"}`}>
                     {selectedFriend ? (
                         <>
                             <ChatHeader
@@ -45,8 +48,9 @@ const ChatPage = () => {
                                 friendEntry={selectedFriendEntry}
                                 isTyping={isTyping}
                                 onlineUsers={onlineUsers}
+                                onBack={() => selectFriend(null)}
                             />
-                            <div className="flex-1 overflow-y-auto p-4">
+                            <div className="flex-1 overflow-y-auto p-4 bg-gray-50">
                                 {messages.map((msg, idx) => (
                                     <MessageBubble key={idx} message={msg} currentUserId={currentUser?._id} />
                                 ))}
@@ -60,7 +64,7 @@ const ChatPage = () => {
                             />
                         </>
                     ) : (
-                        <div className="flex-1 flex flex-col items-center justify-center text-gray-400">
+                        <div className="flex-1 flex flex-col items-center justify-center text-gray-400 bg-white">
                             <FaCommentDots size={64} className="mb-4 opacity-30" />
                             <p className="text-lg font-medium">Select a friend to chat</p>
                             <p className="text-sm mt-1">Your conversations will appear here</p>

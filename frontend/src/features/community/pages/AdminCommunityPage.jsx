@@ -64,7 +64,7 @@ const AdminCommunityPage = () => {
                         </div>
                         <div className="space-y-3">
                             <label className="block text-sm font-medium text-gray-700">Privacy & Joining</label>
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <button
                                     type="button"
                                     onClick={() => setCommunityIsPrivate(false)}

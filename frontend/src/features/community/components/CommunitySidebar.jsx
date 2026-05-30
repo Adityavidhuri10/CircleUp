@@ -3,7 +3,7 @@ import { FaUsers, FaGlobe } from "react-icons/fa";
 import { Link } from "react-router-dom";
 
 const CommunitySidebar = ({ communities, selectedCommunity, onSelect }) => (
-    <div className="w-60 bg-white border-r border-gray-200 flex flex-col h-full">
+    <div className="w-full bg-white flex flex-col h-full">
         <div className="p-4 border-b border-gray-200">
             <h2 className="text-xl font-bold text-purple-800">Communities</h2>
         </div>

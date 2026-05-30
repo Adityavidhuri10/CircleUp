@@ -81,23 +81,23 @@ const PeoplesPage = () => {
         <div className="min-h-screen bg-gradient-to-br from-purple-50 to-blue-50 py-8 px-4">
             <Toaster position="top-center" />
             <div className="max-w-4xl mx-auto">
-                <div className="flex justify-between items-center mb-4">
+                <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between mb-6">
                     <h1 className="text-3xl font-bold text-purple-800">{showAiMatches ? "AI Matched People" : "Discover People"}</h1>
-                    <div className="flex space-x-2">
+                    <div className="flex flex-wrap gap-2">
                         {showAiMatches && (
-                            <button onClick={exitAiMatches} className="flex items-center space-x-1 bg-gray-100 text-gray-700 px-3 py-2 rounded-full text-sm hover:bg-gray-200">
+                            <button onClick={exitAiMatches} className="flex items-center space-x-1 bg-gray-100 text-gray-700 px-3 py-2 rounded-full text-sm hover:bg-gray-200 cursor-pointer">
                                 <FaUsers /><span>All People</span>
                             </button>
                         )}
                         <button
                             onClick={() => handleAiMatching(null)} disabled={aiLoading}
-                            className="flex items-center space-x-1 bg-purple-600 text-white px-3 py-2 rounded-full text-sm hover:bg-purple-700 disabled:opacity-50"
+                            className="flex items-center space-x-1 bg-purple-600 text-white px-3 py-2 rounded-full text-sm hover:bg-purple-700 disabled:opacity-50 cursor-pointer"
                         >
                             <FaRobot /><span>{aiLoading ? "Matching..." : "AI Match"}</span>
                         </button>
                         <button
                             onClick={() => setShowPendingRequests(!showPendingRequests)}
-                            className="flex items-center space-x-1 bg-white text-purple-600 border border-purple-300 px-3 py-2 rounded-full text-sm hover:bg-purple-50"
+                            className="flex items-center space-x-1 bg-white text-purple-600 border border-purple-300 px-3 py-2 rounded-full text-sm hover:bg-purple-50 cursor-pointer"
                         >
                             <FaHourglass /><span>Pending ({pendingRequests.length})</span>
                         </button>
