@@ -14,8 +14,10 @@ import {
 } from "react-icons/md";
 import { motion, useAnimation } from "framer-motion";
 import { useInView } from "react-intersection-observer";
+import { useNavigate } from "react-router-dom";
 
 const HomePage = () => {
+    const navigate = useNavigate();
     // Animation controls
     const controls = useAnimation();
     const [ref, inView] = useInView({
@@ -77,7 +79,10 @@ const HomePage = () => {
                             finding gym buddies, travel partners, or flatmates.
                         </p>
                         <div className="mt-8 flex flex-col sm:flex-row gap-4">
-                            <button className="px-8 py-3 bg-purple-600 text-white rounded-full font-medium hover:bg-purple-700 transition duration-300 shadow-lg hover:shadow-xl">
+                            <button
+                                onClick={() => navigate("/login")}
+                                className="px-8 py-3 bg-purple-600 text-white rounded-full font-medium hover:bg-purple-700 transition duration-300 shadow-lg hover:shadow-xl"
+                            >
                                 Get Started
                             </button>
                             <button className="px-8 py-3 bg-white text-purple-600 rounded-full font-medium hover:bg-gray-50 transition duration-300 shadow-lg hover:shadow-xl">
